@@ -10,143 +10,159 @@ Write and implement Python code that integrates with multiple AI tools to automa
 # Explanation:
 Experiment the persona pattern as a programmer for any specific applications related with your interesting area. 
 Generate the outoput using more than one AI tool and based on the code generation analyse and discussing that. 
+# Stage 1: Prompt for Generating Python Code for Multiple APIs
+Prompt Designed
 
-# Conclusion:
-# Step-by-Step Explanation:
-Setup API Clients: Configure access to OpenAI and Gemini using API keys.
+“Generate Python code that fetches weather information from two different APIs such as OpenWeatherMap API and WeatherAPI.
+The program should:
 
-Query AI Models: Send a prompt to both models and retrieve responses.
+Accept a city name as input.
+Retrieve temperature, humidity, and weather condition from both APIs.
+Display the outputs clearly.
+Use Python requests library.
+Include proper exception handling and comments.
+# AI-Generated Response:
+```
+import requests
 
-Compare Responses:
+# API Keys
+OPENWEATHER_API_KEY = "your_openweather_api_key"
+WEATHERAPI_KEY = "your_weatherapi_key"
 
-Generate text embeddings using Sentence Transformers.
+city = input("Enter city name: ")
 
-Compute cosine similarity between embeddings.
+try:
+    # OpenWeatherMap API
+    openweather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
+    response1 = requests.get(openweather_url)
+    data1 = response1.json()
 
-Extract Keywords: Use KeyBERT to identify key terms from each response.
+    # WeatherAPI
+    weatherapi_url = f"http://api.weatherapi.com/v1/current.json?key={WEATHERAPI_KEY}&q={city}"
+    response2 = requests.get(weatherapi_url)
+    data2 = response2.json()
 
-Generate Insights: Analyze similarity scores and keyword overlap to produce actionable conclusions.
-````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
-# Install required libraries (run once)
-# pip install openai google-generativeai sentence-transformers scikit-learn keybert
+    print("\n--- OpenWeatherMap ---")
+    print("Temperature:", data1['main']['temp'], "°C")
+    print("Humidity:", data1['main']['humidity'], "%")
+    print("Condition:", data1['weather'][0]['description'])
 
-import openai
-import google.generativeai as genai
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-from keybert import KeyBERT
+    print("\n--- WeatherAPI ---")
+    print("Temperature:", data2['current']['temp_c'], "°C")
+    print("Humidity:", data2['current']['humidity'], "%")
+    print("Condition:", data2['current']['condition']['text'])
 
-# Initialize models
-embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-kw_model = KeyBERT()
+except Exception as e:
+    print("Error occurred:", e)
+```
+## Explanation
+The code uses two APIs to fetch weather data.
+requests library is used for API calls.
+User provides a city name as input.
+Results from both APIs are displayed separately.
+Exception handling prevents crashes if errors occur.
 
-# API Configuration - Replace with your keys
-OPENAI_API_KEY = "your-openai-key"
-GEMINI_API_KEY = "your-gemini-key"
+# Stage 2: Prompt for Comparing Outputs from Different APIs
+Prompt Designed
 
-openai.api_key = OPENAI_API_KEY
-genai.configure(api_key=GEMINI_API_KEY)
+“Write Python code that compares the outputs received from OpenWeatherMap API and WeatherAPI.
+The program should:
 
-def get_openai_response(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message.content
+Compare temperature and humidity values.
+Calculate the difference between values.
+Display which API reports higher temperature and humidity.
+Print the comparison in a readable format.”
+# AI-Generated Response:
+```
+# Sample values from APIs
 
-def get_gemini_response(prompt):
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(prompt)
-    return response.text
+open_temp = 30
+weather_temp = 28
 
-def analyze_responses(prompt):
-    # Get AI responses
-    openai_response = get_openai_response(prompt)
-    gemini_response = get_gemini_response(prompt)
-    
-    # Compare embeddings
-    embeddings = embedding_model.encode([openai_response, gemini_response])
-    similarity = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
-    
-    # Extract keywords
-    openai_kws = [kw[0] for kw in kw_model.extract_keywords(openai_response, top_n=3)]
-    gemini_kws = [kw[0] for kw in kw_model.extract_keywords(gemini_response, top_n=3)]
-    
-    # Generate insights
-    insights = {
-        "similarity_score": round(similarity, 2),
-        "common_keywords": list(set(openai_kws) & set(gemini_kws)),
-        "openai_keywords": openai_kws,
-        "gemini_keywords": gemini_kws,
-        "recommendation": "High agreement - Suitable for consistent outputs" if similarity > 0.7 
-                           else "Moderate agreement - Review differences" if similarity > 0.4 
-                           else "Low agreement - Investigate discrepancies"
-    }
-    
-    return {
-        "openai_response": openai_response,
-        "gemini_response": gemini_response,
-        "analysis": insights
-    }
+open_humidity = 70
+weather_humidity = 65
 
-if __name__ == "__main__":
-    prompt = "Explain the future of AI in healthcare in three sentences."
-    results = analyze_responses(prompt)
-    
-    print("OpenAI Response:\n", results["openai_response"], "\n")
-    print("Gemini Response:\n", results["gemini_response"], "\n")
-    print("Similarity Score:", results["analysis"]["similarity_score"])
-    print("Common Keywords:", results["analysis"]["common_keywords"])
-    print("OpenAI Keywords:", results["analysis"]["openai_keywords"])
-    print("Gemini Keywords:", results["analysis"]["gemini_keywords"])
-    print("Recommendation:", results["analysis"]["recommendation"])
-````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
-# Code Analysis and Discussion:
-API Integration:
+temp_difference = abs(open_temp - weather_temp)
+humidity_difference = abs(open_humidity - weather_humidity)
 
-OpenAI: Uses chat completion API with GPT-3.5-turbo
+print("Temperature Difference:", temp_difference, "°C")
+print("Humidity Difference:", humidity_difference, "%")
 
-Gemini: Leverages Google's Generative AI client library
+if open_temp > weather_temp:
+    print("OpenWeatherMap reports higher temperature.")
+else:
+    print("WeatherAPI reports higher temperature.")
 
-Both services handle natural language generation but have different response structures
+if open_humidity > weather_humidity:
+    print("OpenWeatherMap reports higher humidity.")
+else:
+    print("WeatherAPI reports higher humidity.")
+```
 
-Comparison Mechanism:
+## Explanation
+The program compares values from both APIs.
+abs() function calculates the difference.
+Conditional statements identify higher values.
+Results are shown in an easy-to-read format.
 
-Uses sentence embeddings to create numerical representations
+# Stage 3: Prompt for Generating Insights and Suggestions
+Prompt Designed
 
-Cosine similarity quantifies semantic similarity between responses
+“Generate Python code that analyzes weather data collected from multiple APIs and provides useful insights.
+The program should:
 
-Thresholds (0.7, 0.4) provide tiered recommendations
+Identify if the weather is hot, cold, or moderate.
+Suggest whether users should carry an umbrella based on weather conditions.
+Recommend precautions if humidity is high.
+Display meaningful conclusions.”
+# AI-Generated Response:
+```
+temperature = 32
+humidity = 85
+condition = "Rain"
 
-Keyword Extraction:
+print("\nWeather Insights")
 
-KeyBERT identifies contextually relevant keywords
+if temperature > 30:
+    print("The weather is hot.")
+elif temperature < 20:
+    print("The weather is cold.")
+else:
+    print("The weather is moderate.")
 
-Keyword overlap indicates topical alignment
+if "rain" in condition.lower():
+    print("Carry an umbrella.")
+else:
+    print("No umbrella needed.")
 
-Unique keywords highlight model-specific perspectives
+if humidity > 80:
+    print("High humidity detected. Stay hydrated.")
+```
+## Explanation:
+The program analyzes weather conditions.
+Decision-making is done using if-elif-else.
+Suggestions help users take precautions.
+The output becomes more meaningful and actionable.
+Reflection Note
+# Effectiveness of the Prompts
 
-Actionable Insights:
+The prompts were effective because they clearly specified:
 
-Similarity score guides confidence in model agreement
+The task to be performed.
+The technologies to be used.
+The expected output format.
+Additional requirements such as exception handling and comparisons.
 
-Keyword analysis reveals content focus areas
+This helped the AI generate structured and accurate Python code with explanations.
 
-Recommendations suggest next steps based on agreement level
+# Improvements for Future Prompts
 
-# Example Output:
-````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
-OpenAI Response:
- AI in healthcare will revolutionize diagnostics through advanced imaging analysis... 
+The prompts can be improved further by:
 
-Gemini Response:
- The future of AI in healthcare shows promise in personalized treatment plans... 
+Mentioning exact API response formats.
+Asking for modular code using functions.
+Requesting advanced features like data visualization and logging.
+Including requirements for better UI or database storage.
 
-Similarity Score: 0.85
-Common Keywords: ['healthcare', 'AI', 'patients']
-OpenAI Keywords: ['diagnostics', 'imaging', 'workflow']
-Gemini Keywords: ['personalized', 'treatment', 'predictive']
-Recommendation: High agreement - Suitable for consistent outputs
-````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
-
-# Result: The corresponding Prompt is executed successfully.
+# Result: 
+The corresponding Prompt is executed successfully.
